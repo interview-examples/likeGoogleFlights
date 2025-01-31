@@ -84,7 +84,6 @@ function App() {
         setIsLoading(true);
         setNoResults(false);
         setFlights([]);
-        //setAirports([]);
         const originAirportsData = await fetchAirports(searchParams.originSkyName);
         setOriginAirportsData(originAirportsData);
 
