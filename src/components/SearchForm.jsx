@@ -16,9 +16,8 @@ function SearchForm({ onSearch }) {
         tripType: 'round-trip',
         adults: 1,
         kids: 0,
-        infantsWithSeat: 0,
-        infantsWithoutSeat: 0,
-        cabinClass: '',
+        infants: 0,
+        cabinClass: 'economy',
 /*
         originSkyId: '',
         originEntityId: '',
@@ -71,7 +70,7 @@ function SearchForm({ onSearch }) {
         onSearch(searchParams);
     };
 
-    const totalPassengers = searchParams.adults + searchParams.kids + searchParams.infantsWithSeat + searchParams.infantsWithoutSeat;
+    const totalPassengers = searchParams.adults + searchParams.kids + searchParams.infants;
 
     return (
         <div className="p-6 rounded border border-gray-200">
@@ -103,8 +102,7 @@ function SearchForm({ onSearch }) {
                                 initialPassengers={{
                                     adults: searchParams.adults,
                                     kids: searchParams.kids,
-                                    infantsWithSeat: searchParams.infantsWithSeat,
-                                    infantsWithoutSeat: searchParams.infantsWithoutSeat
+                                    infants: searchParams.infants,
                                 }}
                                 onSubmit={handlePassengerSubmit}
                                 onClose={() => setPassengerPopupOpen(false)}
