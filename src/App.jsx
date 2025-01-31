@@ -1,22 +1,17 @@
-import {useEffect, useState} from 'react';
+import { useState } from 'react';
 import './styles/App.css'
 import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import Footer from './components/Footer';
 import FlightList from './components/FlightList';
 import FilterBar from './components/FilterBar';
-//import AirportsList from './components/AirportsList';
 import axios from 'axios';
 
 function App() {
     const [flights, setFlights] = useState([]);
-    //const [airports, setAirports] = useState([]);
-    const [originAirportsData, setOriginAirportsData] = useState([]);
-    const [destinationAirportsData, setDestinationAirportsData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [noResults, setNoResults] = useState(true);
     const [sortCriteria, setSortCriteria] = useState('');
-    const [filterCriteria, setFilterCriteria] = useState('');
 
     const fetchAirports = async (skyName) => {
         try {
@@ -31,26 +26,23 @@ function App() {
                 },
             });
 
-            let res = [];
             if (response.data.status) {
-                const airportData = response.data.data.map(item => ({
+                return response.data.data.map(item => ({
                     skyId: item.skyId,
                     entityId: item.entityId,
                     title: item.presentation.title,
                     suggestionTitle: item.presentation.suggestionTitle,
                     subtitle: item.presentation.subtitle
                 }));
-                res = airportData;
             } else {
                 console.error("Failed to fetch airports: Status is false");
+                return [];
             }
-            return res;
         } catch (error) {
             console.error("Error(s) occurred while fetching airports: ", error);
             return [];
         }
     };
-
 
     const fetchFlights = async (params) => {
         const options = {
@@ -62,19 +54,16 @@ function App() {
                 'x-rapidapi-host': 'sky-scrapper.p.rapidapi.com',
             },
         };
-console.log(params);
         try {
             const response = await axios.request(options);
-            if (!response.data.status) {
-                throw new Error("Failed to fetch flights. Incorrect user's data.");
+            if (response.data.status) {
+                const flightsData = response.data.data.itineraries;
+                setFlights(flightsData);
+                setNoResults(flightsData.length === 0);
+            } else {
+                console.error("Failed to fetch flights. Incorrect user's data.");
+                setNoResults(true);
             }
-console.log(response.data);
-            const flightsData = response.data.data.itineraries;
-            setFlights(flightsData);
-
-            //const airportsData = response.data.data.filterStats.airports.flatMap(city => city.airports);
-            //setAirports(airportsData);
-            setNoResults(flightsData.length === 0);
         } catch (error) {
             console.error("Error(s) occurred while fetching flights: ", error);
             setNoResults(true);
@@ -87,19 +76,13 @@ console.log(response.data);
         setSortCriteria(criteria);
     };
 
-    const handleFilter = (criteria) => {
-        setFilterCriteria(criteria);
-    };
-
     const handleSearch = async (searchParams) => {
         setIsLoading(true);
         setNoResults(false);
         setFlights([]);
-        const originAirportsData = await fetchAirports(searchParams.originSkyName);
-        setOriginAirportsData(originAirportsData);
 
+        const originAirportsData = await fetchAirports(searchParams.originSkyName);
         const destinationAirportsData = await fetchAirports(searchParams.destinationSkyName);
-        setDestinationAirportsData(destinationAirportsData);
 
         if (originAirportsData.length > 0 && destinationAirportsData.length > 0) {
             const params = {
@@ -123,22 +106,20 @@ console.log(response.data);
         }
     };
 
-    const filteredAndSortedFlights = flights
-        //.filter(flight => flight.destination.includes(filterCriteria))
-        .sort((a, b) => {
-            switch (sortCriteria) {
-                case 'price':
-                    return a.price.raw - b.price.raw;
-                case 'duration':
-                    return a.legs[0].durationInMinutes - b.legs[0].durationInMinutes;
-                case 'departure':
-                    return new Date(a.legs[0].departure) - new Date(b.legs[0].departure);
-                case 'arrival':
-                    return new Date(a.legs[0].arrival) - new Date(b.legs[0].arrival);
-                default:
-                    return 0;
-            }
-        });
+    const sortedFlights = flights.sort((a, b) => {
+        switch (sortCriteria) {
+            case 'price':
+                return a.price.raw - b.price.raw;
+            case 'duration':
+                return a.legs[0].durationInMinutes - b.legs[0].durationInMinutes;
+            case 'departure':
+                return new Date(a.legs[0].departure) - new Date(b.legs[0].departure);
+            case 'arrival':
+                return new Date(a.legs[0].arrival) - new Date(b.legs[0].arrival);
+            default:
+                return 0;
+        }
+    });
 
     return (
         <div className="App">
@@ -157,9 +138,8 @@ console.log(response.data);
             )}
             {!isLoading && !noResults && (
                 <>
-                    {/*<AirportsList airports={airports} />{}*/}
-                    <FilterBar onSort={handleSort} onFilter={handleFilter} />
-                    <FlightList flights={filteredAndSortedFlights} />
+                    <FilterBar onSort={handleSort} />
+                    <FlightList flights={sortedFlights} />
                 </>
             )}
             <Footer />
