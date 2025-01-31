@@ -40,8 +40,7 @@ PassengerPopup.propTypes = {
     initialPassengers: PropTypes.shape({
         adults: PropTypes.number.isRequired,
         kids: PropTypes.number.isRequired,
-        infantsWithSeat: PropTypes.number.isRequired,
-        infantsWithoutSeat: PropTypes.number.isRequired,
+        infants: PropTypes.number.isRequired,
     }).isRequired,
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
