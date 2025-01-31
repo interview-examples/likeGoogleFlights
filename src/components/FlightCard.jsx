@@ -10,6 +10,12 @@ function FlightCard({ flight }) {
         return new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
     };
 
+    const formatDuration = (minutes) => {
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return `${hours}h ${remainingMinutes}m`;
+    };
+
     const farePolicyExists = Object.values(flight.farePolicy).some(value => value);
 
     return (
@@ -21,7 +27,15 @@ function FlightCard({ flight }) {
                 </div>
                 <div className="text-right">
                     <span className="text-xl font-semibold">{flight.price.formatted}</span>
-                    {flight.hasFlexibleOptions && <p className="text-sm text-green-500">Flexible options</p>}
+                    {flight.tags && (
+                        <div className={"flex flex-col space-y-1"}>
+                        {flight.tags.map((tag, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                    )}
                 </div>
             </div>
 
@@ -31,8 +45,8 @@ function FlightCard({ flight }) {
 
             {showDetails && flight.legs.map((leg, index) => (
                 <div key={leg.id} className="border-t pt-4 mt-4 ">
-                    <h3 className="text-md font-semibold">Leg {index + 1}: {leg.origin.name} to {leg.destination.name}</h3>
-                    <p className="text-sm">Duration: {leg.durationInMinutes} minutes</p>
+                    <h3 className="text-md font-semibold">Fly {index + 1}: {leg.origin.name} <small>to</small> {leg.destination.name}</h3>
+                    <p className="text-sm">Duration: {formatDuration(leg.durationInMinutes)}</p>
                     <p className="text-sm">Stops: {leg.stopCount === 0 ? 'Direct flight' : `${leg.stopCount} stop(s)`}</p>
                     {leg.segments.map((segment, segmentIndex) => {
                         const carrierLogos = {};
@@ -40,22 +54,27 @@ function FlightCard({ flight }) {
                             carrierLogos[carrier.id] = carrier.logoUrl;
                         });
                         return (
-                            <div key={segment.id} className="w-full max-w-2xl pl-4 mt-2 flex items-center">
-                                <div className="mr-2 flex items-center space-x-2">
-                                    <img
-                                        src={carrierLogos[segment.marketingCarrier.id]} // Используем хэшмапу для получения логотипа
-                                        alt={segment.marketingCarrier.name}
-                                        title={segment.marketingCarrier.name} // Добавляем подсказку с именем авиакомпании
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium">Segment {segmentIndex + 1}: {segment.origin.name} to {segment.destination.name}</p>
-                                    <p className="text-sm">Departure: {formatDate(segment.departure)}</p>
-                                    <p className="text-sm">Arrival: {formatDate(segment.arrival)}</p>
-                                    <p className="text-sm">Flight Number: {segment.flightNumber}</p>
+                            <div key={segment.id} className="border-t pt-4 mt-4 flex justify-center">
+                                <div className="w-full max-w-2xl pl-4 mt-2 flex flex-col sm:flex-row items-center sm:items-start sm:justify-between">
+                                    <div className="mr-2 flex items-center">
+                                        <img
+                                            src={carrierLogos[segment.marketingCarrier.id]}
+                                            alt={segment.marketingCarrier.name}
+                                            title={segment.marketingCarrier.name}
+                                            className="w-10 h-10 mr-2"
+                                        />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="text-sm font-medium">{segmentIndex + 1}: {segment.origin.name} <small>to</small> {segment.destination.name}</p>
+                                        <p className="text-sm">Departure: {formatDate(segment.departure)}</p>
+                                        <p className="text-sm">Arrival: {formatDate(segment.arrival)}</p>
+                                    </div>
+                                    <div className="text-right sm:text-left sm:w-1/4 sm:self-start">
+                                        <p className="text-sm mt-0">Flight Number: <strong>{segment.flightNumber}</strong></p>
+                                    </div>
                                 </div>
                             </div>
+
                         );
                     })}
                 </div>
@@ -65,7 +84,7 @@ function FlightCard({ flight }) {
                 <div className="border-t pt-4 mt-4">
                     <p className="text-sm">Fare Policy:</p>
                     <ul className="list-disc list-inside">
-                        {flight.farePolicy.isChangeAllowed && <li>Change allowed</li>}
+                        {flight.farePolicy.hasFlexibleOptions && <li>Flexible options</li>}                        {flight.farePolicy.isChangeAllowed && <li>Change allowed</li>}
                         {flight.farePolicy.isPartiallyChangeable && <li>Partially changeable</li>}
                         {flight.farePolicy.isCancellationAllowed && <li>Cancellation allowed</li>}
                         {flight.farePolicy.isPartiallyRefundable && <li>Partially refundable</li>}
@@ -80,6 +99,7 @@ FlightCard.propTypes = {
     flight: PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         farePolicy: PropTypes.shape({
+            hasFlexibleOptions: PropTypes.bool,
             isChangeAllowed: PropTypes.bool,
             isPartiallyChangeable: PropTypes.bool,
             isCancellationAllowed: PropTypes.bool,
@@ -91,6 +111,7 @@ FlightCard.propTypes = {
             formatted: PropTypes.string,
             pricingOptionId: PropTypes.string,
         }),
+        tags: PropTypes.arrayOf(PropTypes.string),
         legs: PropTypes.arrayOf(
             PropTypes.shape({
                 id: PropTypes.string,

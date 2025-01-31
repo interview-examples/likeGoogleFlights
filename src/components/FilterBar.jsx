@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 
-//function FilterBar({ onSort, onFilter }) {
 function FilterBar({ onSort }) {
     return (
         <div className="flex justify-between items-center p-4 bg-gray-200 rounded-lg shadow-md">
@@ -14,24 +13,12 @@ function FilterBar({ onSort }) {
                     <option value="arrival">Arrival Time</option>
                 </select>
             </div>
-{/*
-            <div className="flex items-center">
-                <label className="mr-2">Filter:</label>
-                <input
-                    type="text"
-                    placeholder="Enter filter criteria..."
-                    onChange={e => onFilter(e.target.value)}
-                    className="p-2 rounded-lg"
-                />
-            </div>
-*/}
         </div>
     );
 }
 
 FilterBar.propTypes = {
     onSort: PropTypes.func.isRequired,
-    onFilter: PropTypes.func.isRequired,
 };
 
 export default FilterBar;
