@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import {useEffect, useState} from 'react';
 import PropTypes from "prop-types";
 import {
     Input,
@@ -13,7 +13,7 @@ function SearchForm({ onSearch }) {
         destinationSkyName: '',
         date: '',
         returnDate: '',
-        tripType: 'one-way',
+        tripType: 'round-trip',
         adults: 1,
         kids: 0,
         infantsWithSeat: 0,
@@ -33,16 +33,20 @@ function SearchForm({ onSearch }) {
     });
     const [isPassengerPopupOpen, setPassengerPopupOpen] = useState(false);
     const [isFormValid, setIsFormValid] = useState(false);
-    const validateForm = () => {
-        const isValid = true/* logic of validation */;
-        setIsFormValid(isValid);
-    };
 
-    const handlePassengerChange = (type, value) => {
-        setSearchParams(prevState => ({
-            ...prevState,
-            [type]: value,
-        }));
+    useEffect(() => {
+        validateForm();
+    }, [searchParams]);
+
+    const validateForm = () => {
+        const isValid =
+            totalPassengers > 0 &&
+            searchParams.originSkyName.length != 0 &&
+            searchParams.destinationSkyName.length != 0 &&
+            searchParams.date.length != 0 &&
+            (searchParams.tripType == 'round-trip' ? searchParams.returnDate.length != 0 : true);
+
+        setIsFormValid(isValid);
     };
 
     const handleChange = (e) => {
@@ -51,8 +55,16 @@ function SearchForm({ onSearch }) {
             ...prevState,
             [name]: value,
         }));
-        validateForm();
     };
+
+    const handlePassengerSubmit = (passengers) => {
+        setSearchParams(prevState => ({
+            ...prevState,
+            ...passengers,
+        }));
+        setPassengerPopupOpen(false);
+    };
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -88,12 +100,13 @@ function SearchForm({ onSearch }) {
                         </div>
                         {isPassengerPopupOpen && (
                             <PassengerPopup
-                                adults={searchParams.adults}
-                                kids={searchParams.kids}
-                                infantsWithSeat={searchParams.infantsWithSeat}
-                                infantsWithoutSeat={searchParams.infantsWithoutSeat}
-                                onPassengerChange={handlePassengerChange}
-                                onSubmit={() => {setPassengerPopupOpen(false) && handlePassengerChange}}
+                                initialPassengers={{
+                                    adults: searchParams.adults,
+                                    kids: searchParams.kids,
+                                    infantsWithSeat: searchParams.infantsWithSeat,
+                                    infantsWithoutSeat: searchParams.infantsWithoutSeat
+                                }}
+                                onSubmit={handlePassengerSubmit}
                                 onClose={() => setPassengerPopupOpen(false)}
                             />
                         )}
@@ -170,7 +183,15 @@ function SearchForm({ onSearch }) {
                     )}
                 </div>
                 <div className="flex justify-center">
-                    <Button className="mt-4 w-auto px-8" type={"submit"} disabled={!isFormValid}>Search flights</Button>
+                    <button
+                        type="submit"
+                        className={`align-middle select-none font-sans font-bold text-center uppercase transition-all text-xs py-3 rounded shadow-md mt-4 w-auto px-8 ${
+                            isFormValid ? 'bg-blue-500 text-white hover:shadow-lg focus:opacity-[0.85] active:opacity-[0.85]'
+                                : 'bg-blue-200 opacity-50 shadow-none pointer-events-none'}`}
+                        disabled={!isFormValid}
+                    >
+                        Search flights
+                    </button>
                 </div>
             </form>
         </div>
