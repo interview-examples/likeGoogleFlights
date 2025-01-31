@@ -30,21 +30,34 @@ function FlightCard({ flight }) {
             </button>
 
             {showDetails && flight.legs.map((leg, index) => (
-                <div key={leg.id} className="border-t pt-4 mt-4">
+                <div key={leg.id} className="border-t pt-4 mt-4 ">
                     <h3 className="text-md font-semibold">Leg {index + 1}: {leg.origin.name} to {leg.destination.name}</h3>
                     <p className="text-sm">Duration: {leg.durationInMinutes} minutes</p>
                     <p className="text-sm">Stops: {leg.stopCount === 0 ? 'Direct flight' : `${leg.stopCount} stop(s)`}</p>
-                    {leg.segments.map((segment, segmentIndex) => (
-                        <div key={segment.id} className="pl-4 mt-2 flex items-center">
-                            <img src={segment.marketingCarrier.logoUrl} alt={segment.marketingCarrier.name} className="w-10 h-10 mr-2"/>
-                            <div>
-                                <p className="text-sm font-medium">Segment {segmentIndex + 1}: {segment.origin.name} to {segment.destination.name}</p>
-                                <p className="text-sm">Departure: {formatDate(segment.departure)}</p>
-                                <p className="text-sm">Arrival: {formatDate(segment.arrival)}</p>
-                                <p className="text-sm">Flight Number: {segment.flightNumber}</p>
+                    {leg.segments.map((segment, segmentIndex) => {
+                        const carrierLogos = {};
+                        leg.carriers.marketing.forEach(carrier => {
+                            carrierLogos[carrier.id] = carrier.logoUrl;
+                        });
+                        return (
+                            <div key={segment.id} className="w-full max-w-2xl pl-4 mt-2 flex items-center">
+                                <div className="mr-2 flex items-center space-x-2">
+                                    <img
+                                        src={carrierLogos[segment.marketingCarrier.id]} // Используем хэшмапу для получения логотипа
+                                        alt={segment.marketingCarrier.name}
+                                        title={segment.marketingCarrier.name} // Добавляем подсказку с именем авиакомпании
+                                        className="w-10 h-10 mr-2"
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Segment {segmentIndex + 1}: {segment.origin.name} to {segment.destination.name}</p>
+                                    <p className="text-sm">Departure: {formatDate(segment.departure)}</p>
+                                    <p className="text-sm">Arrival: {formatDate(segment.arrival)}</p>
+                                    <p className="text-sm">Flight Number: {segment.flightNumber}</p>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             ))}
 
