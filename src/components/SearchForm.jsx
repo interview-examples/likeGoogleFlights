@@ -2,7 +2,6 @@ import {useEffect, useState} from 'react';
 import PropTypes from "prop-types";
 import {
     Input,
-    Button,
     Typography,
 } from "@material-tailwind/react";
 import PassengerPopup from './PassengerPopup';
