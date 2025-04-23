@@ -1,10 +1,11 @@
-import {useEffect, useState} from 'react';
+import { useState, useMemo } from 'react';
 import PropTypes from "prop-types";
 import {
     Input,
     Typography,
 } from "@material-tailwind/react";
 import PassengerPopup from './PassengerPopup';
+import { useSearchFormValidation } from '../hooks/useSearchFormValidation';
 
 function SearchForm({ onSearch }) {
     const [searchParams, setSearchParams] = useState({
@@ -17,35 +18,13 @@ function SearchForm({ onSearch }) {
         kids: 0,
         infants: 0,
         cabinClass: 'economy',
-/*
-        originSkyId: '',
-        originEntityId: '',
-        destinationSkyId: '',
-        destinationEntityId: '',
-        legs: '',
-        currency: '',
-        locale: '',
-        market: '',
-        countryCode: '',
-*/
     });
     const [isPassengerPopupOpen, setPassengerPopupOpen] = useState(false);
-    const [isFormValid, setIsFormValid] = useState(false);
-
-    useEffect(() => {
-        validateForm();
-    }, [searchParams]);
-
-    const validateForm = () => {
-        const isValid =
-            totalPassengers > 0 &&
-            searchParams.originSkyName.length != 0 &&
-            searchParams.destinationSkyName.length != 0 &&
-            searchParams.date.length != 0 &&
-            (searchParams.tripType == 'round-trip' ? searchParams.returnDate.length != 0 : true);
-
-        setIsFormValid(isValid);
-    };
+    const totalPassengers = useMemo(
+        () => searchParams.adults + searchParams.kids + searchParams.infants,
+        [searchParams.adults, searchParams.kids, searchParams.infants]
+    );
+    const isFormValid = useSearchFormValidation(searchParams);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -68,8 +47,6 @@ function SearchForm({ onSearch }) {
         e.preventDefault();
         onSearch(searchParams);
     };
-
-    const totalPassengers = searchParams.adults + searchParams.kids + searchParams.infants;
 
     return (
         <div className="p-6 rounded border border-gray-200">
@@ -130,7 +107,8 @@ function SearchForm({ onSearch }) {
                         <Typography variant="small" color="blue-gray" className="mb-2 font-medium">
                             Airport origin:
                         </Typography>
-                        <Input
+                        <input
+                            type="text"
                             placeholder="Departure from ..."
                             className="w-full"
                             name="originSkyName"
@@ -142,7 +120,8 @@ function SearchForm({ onSearch }) {
                         <Typography variant="small" color="blue-gray" className="mb-2 font-medium">
                             Airport destination:
                         </Typography>
-                        <Input
+                        <input
+                            type="text"
                             placeholder="Arrival to ..."
                             className="w-full"
                             name="destinationSkyName"
